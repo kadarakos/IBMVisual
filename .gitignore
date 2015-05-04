@@ -1,0 +1,6 @@
+# Compiled source, pickles, data #
+###################
+*.pyc
+*.pkl
+*.json
+*.mat
