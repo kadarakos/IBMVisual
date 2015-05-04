@@ -1,10 +1,15 @@
+import os
+import json
+from scipy.io import loadmat
+from collections import defaultdict
+
 class BasicDataProvider:
   def __init__(self, dataset):
     print 'Initializing data provider for dataset %s...' % (dataset, )
 
     # !assumptions on folder structure
-    self.dataset_root = os.path.join(PATH+'/dataset', dataset)
-    self.image_root = os.path.join(PATH+'/dataset', dataset, 'imgs')
+    self.dataset_root = os.path.join('./datasets', dataset)
+    self.image_root = os.path.join('./datasets', dataset, 'imgs')
 
     # load the dataset into memory
     dataset_path = os.path.join(self.dataset_root, 'dataset.json')
@@ -14,7 +19,7 @@ class BasicDataProvider:
     # load the image features into memory
     features_path = os.path.join(self.dataset_root, 'vgg_feats.mat')
     print 'BasicDataProvider: reading %s' % (features_path, )
-    features_struct = scipy.io.loadmat(features_path)
+    features_struct = loadmat(features_path)
     self.features = features_struct['feats']
 
     # group images by their train/val/test split into a dictionary -> list structure
@@ -22,12 +27,6 @@ class BasicDataProvider:
     for img in self.dataset['images']:
       self.split[img['split']].append(img)
 
-  # "PRIVATE" FUNCTIONS
-  # in future we may want to create copies here so that we don't touch the 
-  # data provider class data, but for now lets do the simple thing and 
-  # just return raw internal img sent structs. This also has the advantage
-  # that the driver could store various useful caching stuff in these structs
-  # and they will be returned in the future with the cache present
   def _getImage(self, img):
     """ create an image structure for the driver """
 
@@ -52,17 +51,6 @@ class BasicDataProvider:
     else: # assume images
       return len(self.split[split])
 
-  def sampleImageSentencePair(self, split = 'train'):
-    """ sample image sentence pair from a split """
-    images = self.split[split]
-
-    img = random.choice(images)
-    sent = random.choice(img['sentences'])
-
-    out = {}
-    out['image'] = self._getImage(img)
-    out['sentence'] = self._getSentence(sent)
-    return out
 
   def iterImageSentencePair(self, split = 'train', max_images = -1):
     for i,img in enumerate(self.split[split]):
@@ -73,37 +61,36 @@ class BasicDataProvider:
         out['sentence'] = self._getSentence(sent)
         yield out
 
-  def iterImageSentencePairBatch(self, split = 'train', max_images = -1, max_batch_size = 100):
-    batch = []
-    for i,img in enumerate(self.split[split]):
-      if max_images >= 0 and i >= max_images: break
-      for sent in img['sentences']:
-        out = {}
-        out['image'] = self._getImage(img)
-        out['sentence'] = self._getSentence(sent)
-        batch.append(out)
-        if len(batch) >= max_batch_size:
-          yield batch
-          batch = []
-    if batch:
-      yield batch
 
   def iterSentences(self, split = 'train'):
     for img in self.split[split]: 
       for sent in img['sentences']:
         yield self._getSentence(sent)
 
-  def iterImages(self, split = 'train', shuffle = False, max_images = -1):
-    imglist = self.split[split]
-    ix = range(len(imglist))
-    if shuffle:
-      random.shuffle(ix)
-    if max_images > 0:
-      ix = ix[:min(len(ix),max_images)] # crop the list
-    for i in ix:
-      yield self._getImage(imglist[i])
 
-def getDataProvider(dataset):
-  """ we could intercept a special dataset and return different data providers """
-  assert dataset in ['flickr8k', 'flickr30k', 'coco'], 'dataset %s unknown' % (dataset, )
-  return BasicDataProvider(dataset)
+def load_sets(split, dataset):
+    """
+    Utility to load the image features and captions for the
+    training algorithm. It has the option to return the training.
+    the validation or the testing slice of the dataset.
+    It relies on the BasicDataProvider from https://github.com/karpathy/neuraltalk
+    :param mode: train, test, valid or return the full set
+    :return: rows is a list of captions, image feature matrix were every
+             image feature-vector is there 5 times
+    """
+    """
+    old version
+    datareader = BasicDataProvider(dataset)
+    rows = [x['tokens'] for x in datareader.iterSentences(split)]
+    img_feats = [datareader.features.T[x['imgid']] for x in datareader.iterSentences(split)]
+    """
+    print "Loading captions"
+    provider = BasicDataProvider(dataset)
+    img_feats = []
+    captions = []
+    for i in provider.iterImageSentencePair(split):
+      img_feats.append(i['image']['feat'])
+      captions.append(i['sentence']['tokens'])
+    print len(captions)
+    print len(img_feats)
+    return captions, img_feats

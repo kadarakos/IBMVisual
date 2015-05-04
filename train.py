@@ -1,7 +1,6 @@
-from ibm_model import M1
+from ibm_model.ibm_em import M1
 import cPickle
-from bravelearner import utils
-from bravelearner.utils import BasicDataProvider, load_sets
+from ibm_utils import BasicDataProvider, load_sets
 import os
 import scipy.sparse
 import numpy as np
@@ -43,7 +42,7 @@ def learn_embeddings(mode, dataset, split, outname,
     # Translate from English to image features
     elif mode == 'vector':
         print "YEEE"
-        e, f = utils.load_sets(split, dataset)
+        e, f = load_sets(split, dataset)
         f = np.asarray(f)
     else:
         print 'Unrecognized mode:', mode
