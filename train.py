@@ -1,4 +1,4 @@
-from grzegorz_ibm import M1
+from ibm_model import M1
 import cPickle
 from bravelearner import utils
 from bravelearner.utils import BasicDataProvider, load_sets
