@@ -1,7 +1,5 @@
-# Grzegorz Chrupala
-# Code loosely based on https://github.com/kylebgorman/model1/blob/master/m1.py
+# Inspired by https://github.com/kylebgorman/model1/blob/master/m1.py
 
-# Implementation of the online version of EM for IBM model 1.
 from __future__ import division
 import numpy as np
 
@@ -95,7 +93,6 @@ class M1(object):
         """
 	counter = 0
         for (src, tgt) in self.data:
-	   # print src, tgt
 	    counter += 1
 	    print 'At line', counter, '\r',
             for i,fw in enumerate(src):
