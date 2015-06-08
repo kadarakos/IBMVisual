@@ -1,4 +1,5 @@
-Download and unpack the zip from the link below. 
-It should populate the directory with: dataset.json, vgg_feats.mat
+To train the model on COCO, Flickr30k and FLickr8k, 
+follow the instructions in the subfolders. 
 
-http://cs.stanford.edu/people/karpathy/deepimagesent/flickr8k.zip
+Just download and unzip the vectors and the data files
+and you should be ready to train the models.
